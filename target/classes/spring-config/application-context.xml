@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:lang="http://www.springframework.org/schema/lang"
+	xsi:schemaLocation="http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-4.2.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.2.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+
+
+	<context:component-scan base-package="hu.ericsson" />
+
+	<context:property-placeholder
+		location="classpath:spring-config/application.properties" />
+
+	<task:annotation-driven />
+
+	<task:scheduler id="taskScheduler" pool-size="${scheduler.pool.size}" />
+
+	<aop:aspectj-autoproxy expose-proxy="true" />
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<lang:groovy id="calculator" script-source="classpath:groovy/GroovyCalculator.groovy"
+		refresh-check-delay="1000" />
+
+	<beans profile="prod">
+		<jdbc:embedded-database type="HSQL" id="dataSource">
+			<jdbc:script location="classpath:db/db_schema.sql" />
+			<jdbc:script location="classpath:db/insert_customer.sql" />
+		</jdbc:embedded-database>
+	</beans>
+	
+	<!--  We use @Sql annotation to run this script for demonstration -->
+	<beans profile="dev">
+		<jdbc:embedded-database type="HSQL" id="dataSource">
+			<jdbc:script location="classpath:db/db_schema.sql" />
+		</jdbc:embedded-database>
+	</beans>
+
+</beans>
